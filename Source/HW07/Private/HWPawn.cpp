@@ -1,31 +1,47 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 
 #include "HWPawn.h"
+#include "Camera/CameraComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 
-// Sets default values
 AHWPawn::AHWPawn()
 {
- 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	CapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule"));
+	SetRootComponent(CapsuleComponent);
+	CapsuleComponent->InitCapsuleSize(42.f, 96.f);
+	CapsuleComponent->SetCollisionProfileName("Pawn");
+	CapsuleComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+
+	MeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
+	MeshComponent->SetupAttachment(CapsuleComponent);
+	MeshComponent->SetCollisionProfileName("Pawn");
+	MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+
+	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	SpringArm->SetupAttachment(RootComponent);
+	SpringArm->TargetArmLength = 300.f;
+	SpringArm->bUsePawnControlRotation = true;
+
+	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
+	Camera->bUsePawnControlRotation = false;
 
 }
 
-// Called when the game starts or when spawned
 void AHWPawn::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
 
-// Called every frame
 void AHWPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 }
 
-// Called to bind functionality to input
 void AHWPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
