@@ -1,12 +1,13 @@
-
 #include "HWPawn.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "EnhancedInputComponent.h"
+#include "HWPlayerController.h"
 
 AHWPawn::AHWPawn()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	CapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule"));
 	SetRootComponent(CapsuleComponent);
@@ -28,23 +29,42 @@ AHWPawn::AHWPawn()
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 	Camera->bUsePawnControlRotation = false;
 
+	CapsuleComponent->SetSimulatePhysics(false);
+	MeshComponent->SetSimulatePhysics(false);
 }
 
 void AHWPawn::BeginPlay()
 {
 	Super::BeginPlay();
-	
-}
-
-void AHWPawn::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
 }
 
 void AHWPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent))
+	{
+		if (AHWPlayerController* PlayerController = Cast<AHWPlayerController>(GetController()))
+		{
+			if (PlayerController->MoveAction)
+			{
+				EnhancedInput->BindAction(PlayerController->MoveAction, ETriggerEvent::Triggered,
+				                          this, &AHWPawn::Move);
+			}
+			
+			if (PlayerController->LookAction)
+			{
+				EnhancedInput->BindAction(PlayerController->LookAction, ETriggerEvent::Triggered,
+				                          this, &AHWPawn::Look);
+			}
+		}
+	}
 }
 
+void AHWPawn::Move(const FInputActionValue& Value)
+{
+}
+
+void AHWPawn::Look(const FInputActionValue& Value)
+{
+}

@@ -8,6 +8,7 @@
 class UCapsuleComponent;
 class USpringArmComponent;
 class UCameraComponent;
+struct FInputActionValue;
 
 UCLASS()
 class HW07_API AHWPawn : public APawn
@@ -28,10 +29,10 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
-
-public:	
-
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	void Move(const FInputActionValue& Value);
+	void Look(const FInputActionValue& Value);
+
 
 };

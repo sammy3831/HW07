@@ -9,5 +9,8 @@ UCLASS()
 class HW07_API AHWGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
+
+public:
+	AHWGameModeBase();
 	
 };
