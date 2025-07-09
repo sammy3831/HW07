@@ -11,9 +11,9 @@ AHWPawn::AHWPawn()
 
 	CapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule"));
 	SetRootComponent(CapsuleComponent);
-	CapsuleComponent->InitCapsuleSize(42.f, 96.f);
+	CapsuleComponent->InitCapsuleSize(34.f, 88.f);
 	CapsuleComponent->SetCollisionProfileName("Pawn");
-	CapsuleComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	CapsuleComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
 	MeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
 	MeshComponent->SetupAttachment(CapsuleComponent);
@@ -23,7 +23,7 @@ AHWPawn::AHWPawn()
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
 	SpringArm->TargetArmLength = 300.f;
-	SpringArm->bUsePawnControlRotation = true;
+	SpringArm->bUsePawnControlRotation = false;
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
@@ -31,6 +31,8 @@ AHWPawn::AHWPawn()
 
 	CapsuleComponent->SetSimulatePhysics(false);
 	MeshComponent->SetSimulatePhysics(false);
+
+	MoveSpeed = 6.0f;
 }
 
 void AHWPawn::BeginPlay()
@@ -51,7 +53,7 @@ void AHWPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 				EnhancedInput->BindAction(PlayerController->MoveAction, ETriggerEvent::Triggered,
 				                          this, &AHWPawn::Move);
 			}
-			
+
 			if (PlayerController->LookAction)
 			{
 				EnhancedInput->BindAction(PlayerController->LookAction, ETriggerEvent::Triggered,
@@ -63,8 +65,28 @@ void AHWPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void AHWPawn::Move(const FInputActionValue& Value)
 {
+	const FVector2D MoveInput = Value.Get<FVector2D>();
+
+	if (!FMath::IsNearlyZero(MoveInput.X))
+	{
+		FVector DeltaLocation = GetActorForwardVector() * MoveInput.X * MoveSpeed;
+		AddActorLocalOffset(DeltaLocation);
+	}
+	if (!FMath::IsNearlyZero(MoveInput.Y))
+	{
+		FVector DeltaLocation = GetActorRightVector() * MoveInput.Y * MoveSpeed;
+		AddActorLocalOffset(DeltaLocation);
+	}
 }
 
 void AHWPawn::Look(const FInputActionValue& Value)
 {
+	const FVector2D LookInput = Value.Get<FVector2D>();
+	
+	FRotator CurrentRotation = SpringArm->GetRelativeRotation();
+	
+	float NewPitch = FMath::ClampAngle(CurrentRotation.Pitch + LookInput.Y, -80.0f, 80.0f);
+	float NewYaw = CurrentRotation.Yaw + LookInput.X;
+	
+	SpringArm->SetRelativeRotation(FRotator(NewPitch, NewYaw, 0.0f));
 }

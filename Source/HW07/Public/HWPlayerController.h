@@ -22,4 +22,7 @@ public:
 	UInputAction* MoveAction;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
 	UInputAction* LookAction;
+
+protected:
+	virtual void BeginPlay() override;
 };
