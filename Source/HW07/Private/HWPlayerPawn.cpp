@@ -1,4 +1,3 @@
-
 #include "HWPlayerPawn.h"
 #include "EnhancedInputComponent.h"
 #include "HWPlayerController.h"
@@ -15,13 +14,13 @@ void AHWPlayerPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 			if (PlayerController->PlayerMoveAction)
 			{
 				EnhancedInput->BindAction(PlayerController->PlayerMoveAction, ETriggerEvent::Triggered,
-										  this, &AHWPlayerPawn::Move);
+				                          this, &AHWPlayerPawn::Move);
 			}
 
 			if (PlayerController->PlayerLookAction)
 			{
 				EnhancedInput->BindAction(PlayerController->PlayerLookAction, ETriggerEvent::Triggered,
-										  this, &AHWPlayerPawn::Look);
+				                          this, &AHWPlayerPawn::Look);
 			}
 		}
 	}
@@ -33,12 +32,12 @@ void AHWPlayerPawn::Move(const FInputActionValue& Value)
 
 	if (!FMath::IsNearlyZero(MoveInput.X))
 	{
-		FVector DeltaLocation = GetActorForwardVector() * MoveInput.X * MoveSpeed;
+		FVector DeltaLocation = FVector::ForwardVector * MoveInput.X * MoveSpeed;
 		AddActorLocalOffset(DeltaLocation);
 	}
 	if (!FMath::IsNearlyZero(MoveInput.Y))
 	{
-		FVector DeltaLocation = GetActorRightVector() * MoveInput.Y * MoveSpeed;
+		FVector DeltaLocation = FVector::RightVector * MoveInput.Y * MoveSpeed;
 		AddActorLocalOffset(DeltaLocation);
 	}
 }
@@ -46,11 +45,19 @@ void AHWPlayerPawn::Move(const FInputActionValue& Value)
 void AHWPlayerPawn::Look(const FInputActionValue& Value)
 {
 	const FVector2D LookInput = Value.Get<FVector2D>();
-	
+
 	FRotator CurrentRotation = SpringArm->GetRelativeRotation();
-	
-	float NewPitch = FMath::ClampAngle(CurrentRotation.Pitch + LookInput.Y, -80.0f, 80.0f);
-	float NewYaw = CurrentRotation.Yaw + LookInput.X;
-	
+	float NewYaw = CurrentRotation.Yaw;
+	float NewPitch = CurrentRotation.Pitch;
+
+	if (!FMath::IsNearlyZero(LookInput.X))
+	{
+		NewYaw += LookInput.X;
+	}
+	if (!FMath::IsNearlyZero(LookInput.Y))
+	{
+		NewPitch = FMath::ClampAngle(NewPitch + LookInput.Y, -80.0f, 80.0f);
+	}
+
 	SpringArm->SetRelativeRotation(FRotator(NewPitch, NewYaw, 0.0f));
 }

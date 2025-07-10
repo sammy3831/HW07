@@ -1,4 +1,3 @@
-
 #include "HWDronePawn.h"
 #include "EnhancedInputComponent.h"
 #include "HWPlayerController.h"
@@ -14,13 +13,13 @@ void AHWDronePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 			if (PlayerController->DroneMoveAction)
 			{
 				EnhancedInput->BindAction(PlayerController->DroneMoveAction, ETriggerEvent::Triggered,
-										  this, &AHWDronePawn::Move);
+				                          this, &AHWDronePawn::Move);
 			}
 
 			if (PlayerController->DroneLookAction)
 			{
 				EnhancedInput->BindAction(PlayerController->DroneLookAction, ETriggerEvent::Triggered,
-										  this, &AHWDronePawn::Look);
+				                          this, &AHWDronePawn::Look);
 			}
 		}
 	}
@@ -32,26 +31,43 @@ void AHWDronePawn::Move(const FInputActionValue& Value)
 
 	if (!FMath::IsNearlyZero(MoveInput.X))
 	{
-		FVector DeltaLocation = GetActorForwardVector() * MoveInput.X * MoveSpeed;
+		FVector DeltaLocation = FVector::ForwardVector * MoveInput.X * MoveSpeed;
 		AddActorLocalOffset(DeltaLocation);
 	}
 	if (!FMath::IsNearlyZero(MoveInput.Y))
 	{
-		FVector DeltaLocation = GetActorRightVector() * MoveInput.Y * MoveSpeed;
+		FVector DeltaLocation = FVector::RightVector * MoveInput.Y * MoveSpeed;
 		AddActorLocalOffset(DeltaLocation);
 	}
 	if (!FMath::IsNearlyZero(MoveInput.Z))
 	{
-		FVector DeltaLocation = GetActorUpVector() * MoveInput.Z * MoveSpeed;
+		FVector DeltaLocation = FVector::UpVector * MoveInput.Z * MoveSpeed;
 		AddActorLocalOffset(DeltaLocation);
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("Move"));
 }
 
 void AHWDronePawn::Look(const FInputActionValue& Value)
 {
-	Super::Look(Value);
+	const FVector LookInput = Value.Get<FVector>();
 
-	UE_LOG(LogTemp, Warning, TEXT("Look"));
+	FRotator CurrentRotation = GetActorRotation();
+
+	float NewYaw = CurrentRotation.Yaw;
+	float NewPitch = CurrentRotation.Pitch;
+	float NewRoll = CurrentRotation.Roll;
+
+	if (!FMath::IsNearlyZero(LookInput.X))
+	{
+		NewYaw += LookInput.X;
+	}
+	if (!FMath::IsNearlyZero(LookInput.Y))
+	{
+		NewPitch = FMath::ClampAngle(NewPitch + LookInput.Y, -80.0f, 80.0f);
+	}
+	if (!FMath::IsNearlyZero(LookInput.Z))
+	{
+		NewRoll += LookInput.Z;
+	}
+
+	SetActorRotation(FRotator(NewPitch, NewYaw, NewRoll));
 }
