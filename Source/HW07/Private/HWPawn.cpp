@@ -3,7 +3,6 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
-#include "HWPlayerController.h"
 
 AHWPawn::AHWPawn()
 {
@@ -43,50 +42,12 @@ void AHWPawn::BeginPlay()
 void AHWPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent))
-	{
-		if (AHWPlayerController* PlayerController = Cast<AHWPlayerController>(GetController()))
-		{
-			if (PlayerController->MoveAction)
-			{
-				EnhancedInput->BindAction(PlayerController->MoveAction, ETriggerEvent::Triggered,
-				                          this, &AHWPawn::Move);
-			}
-
-			if (PlayerController->LookAction)
-			{
-				EnhancedInput->BindAction(PlayerController->LookAction, ETriggerEvent::Triggered,
-				                          this, &AHWPawn::Look);
-			}
-		}
-	}
 }
 
 void AHWPawn::Move(const FInputActionValue& Value)
 {
-	const FVector2D MoveInput = Value.Get<FVector2D>();
-
-	if (!FMath::IsNearlyZero(MoveInput.X))
-	{
-		FVector DeltaLocation = GetActorForwardVector() * MoveInput.X * MoveSpeed;
-		AddActorLocalOffset(DeltaLocation);
-	}
-	if (!FMath::IsNearlyZero(MoveInput.Y))
-	{
-		FVector DeltaLocation = GetActorRightVector() * MoveInput.Y * MoveSpeed;
-		AddActorLocalOffset(DeltaLocation);
-	}
 }
 
 void AHWPawn::Look(const FInputActionValue& Value)
 {
-	const FVector2D LookInput = Value.Get<FVector2D>();
-	
-	FRotator CurrentRotation = SpringArm->GetRelativeRotation();
-	
-	float NewPitch = FMath::ClampAngle(CurrentRotation.Pitch + LookInput.Y, -80.0f, 80.0f);
-	float NewYaw = CurrentRotation.Yaw + LookInput.X;
-	
-	SpringArm->SetRelativeRotation(FRotator(NewPitch, NewYaw, 0.0f));
 }

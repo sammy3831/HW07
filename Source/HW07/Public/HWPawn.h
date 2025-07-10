@@ -2,6 +2,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "HWPawnInterface.h"
 #include "GameFramework/Pawn.h"
 #include "HWPawn.generated.h"
 
@@ -11,7 +12,7 @@ class UCameraComponent;
 struct FInputActionValue;
 
 UCLASS()
-class HW07_API AHWPawn : public APawn
+class HW07_API AHWPawn : public APawn, public IHWPawnInterface
 {
 	GENERATED_BODY()
 
@@ -34,8 +35,7 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	void Move(const FInputActionValue& Value);
-	void Look(const FInputActionValue& Value);
-
+	virtual void Move(const FInputActionValue& Value) override;
+	virtual void Look(const FInputActionValue& Value) override;
 
 };

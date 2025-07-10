@@ -1,11 +1,15 @@
-
 #include "HWPlayerController.h"
 #include "EnhancedInputSubsystems.h"
+#include "HWPlayerPawn.h"
+#include "HWDronePawn.h"
 
 AHWPlayerController::AHWPlayerController() :
-	InputMappingContext(nullptr),
-	MoveAction(nullptr),
-	LookAction(nullptr)
+	PlayerInputMappingContext(nullptr),
+	PlayerMoveAction(nullptr),
+	PlayerLookAction(nullptr),
+	DroneInputMappingContext(nullptr),
+	DroneMoveAction(nullptr),
+	DroneLookAction(nullptr)
 {
 }
 
@@ -18,9 +22,21 @@ void AHWPlayerController::BeginPlay()
 		if (UEnhancedInputLocalPlayerSubsystem* SubSystem =
 			LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
 		{
-			if (InputMappingContext)
+			if (Cast<AHWPlayerPawn>(GetPawn()))
 			{
-				SubSystem->AddMappingContext(InputMappingContext, 0);
+				if (PlayerInputMappingContext)
+				{
+					SubSystem->AddMappingContext(PlayerInputMappingContext, 0);
+					UE_LOG(LogTemp, Warning, TEXT("Player"));
+				}
+			}
+			else if (Cast<AHWDronePawn>(GetPawn()))
+			{
+				if (DroneInputMappingContext)
+				{
+					SubSystem->AddMappingContext(DroneInputMappingContext, 0);
+					UE_LOG(LogTemp, Warning, TEXT("Drone"));
+				}
 			}
 		}
 	}
