@@ -35,5 +35,5 @@ protected:
 private:
 	bool bMoving;
 
-	bool CheckGround();
+	bool CheckHitGround();
 };

@@ -45,7 +45,7 @@ void AHWDronePawn::Move(const FInputActionValue& Value)
 	const FVector MoveInput = Value.Get<FVector>();
 	bMoving = !MoveInput.IsNearlyZero();
 
-	bool bIsGrounded = CheckGround();
+	bool bIsGrounded = CheckHitGround();
 	float CurrentMoveSpeed = bIsGrounded ? MoveSpeed : MoveSpeed * 0.5f;
 
 	if (!FMath::IsNearlyZero(MoveInput.X))
@@ -113,7 +113,7 @@ void AHWDronePawn::Tick(float DeltaTime)
 
 	if (bSimulateGravity)
 	{
-		bool bIsGrounded = CheckGround();
+		bool bIsGrounded = CheckHitGround();
 		if (!bIsGrounded && !bMoving)
 		{
 			Velocity.Z += GravityScale * DeltaTime;
@@ -128,7 +128,7 @@ void AHWDronePawn::Tick(float DeltaTime)
 	}
 }
 
-bool AHWDronePawn::CheckGround()
+bool AHWDronePawn::CheckHitGround()
 {
 	FVector StartLocation = CapsuleComponent->GetComponentLocation();
 	FVector EndLocation = StartLocation - FVector(0.0f, 0.0f, TraceDistance);
