@@ -10,7 +10,7 @@ class HW07_API AHWPlayerPawn : public AHWPawn
 {
 	GENERATED_BODY()
 
-public:
+protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void Move(const FInputActionValue& Value) override;
 	virtual void Look(const FInputActionValue& Value) override;

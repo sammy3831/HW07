@@ -32,13 +32,13 @@ void AHWPlayerPawn::Move(const FInputActionValue& Value)
 
 	if (!FMath::IsNearlyZero(MoveInput.X))
 	{
-		FVector DeltaLocation = FVector::ForwardVector * MoveInput.X * MoveSpeed;
-		AddActorLocalOffset(DeltaLocation);
+		FVector NewLocation = FVector::ForwardVector * MoveInput.X * MoveSpeed;
+		AddActorLocalOffset(NewLocation);
 	}
 	if (!FMath::IsNearlyZero(MoveInput.Y))
 	{
-		FVector DeltaLocation = FVector::RightVector * MoveInput.Y * MoveSpeed;
-		AddActorLocalOffset(DeltaLocation);
+		FVector NewLocation = FVector::RightVector * MoveInput.Y * MoveSpeed;
+		AddActorLocalOffset(NewLocation);
 	}
 }
 

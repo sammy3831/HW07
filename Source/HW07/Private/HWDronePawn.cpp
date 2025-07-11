@@ -1,6 +1,19 @@
 #include "HWDronePawn.h"
 #include "EnhancedInputComponent.h"
 #include "HWPlayerController.h"
+#include "Components/CapsuleComponent.h"
+
+AHWDronePawn::AHWDronePawn()
+{
+	PrimaryActorTick.bCanEverTick = true;
+
+	GravityScale = -980.0f;
+	bSimulateGravity = true;
+	Velocity = FVector::ZeroVector;
+	bMoving = false;
+	TraceDistance = 100.0f;
+	bShowDebugTrace = false;
+}
 
 void AHWDronePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -14,6 +27,8 @@ void AHWDronePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 			{
 				EnhancedInput->BindAction(PlayerController->DroneMoveAction, ETriggerEvent::Triggered,
 				                          this, &AHWDronePawn::Move);
+				EnhancedInput->BindAction(PlayerController->DroneMoveAction, ETriggerEvent::Completed,
+				                          this, &AHWDronePawn::MoveComplete);
 			}
 
 			if (PlayerController->DroneLookAction)
@@ -28,22 +43,42 @@ void AHWDronePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 void AHWDronePawn::Move(const FInputActionValue& Value)
 {
 	const FVector MoveInput = Value.Get<FVector>();
+	bMoving = !MoveInput.IsNearlyZero();
+
+	bool bIsGrounded = CheckGround();
+	float CurrentMoveSpeed = bIsGrounded ? MoveSpeed : MoveSpeed * 0.5f;
 
 	if (!FMath::IsNearlyZero(MoveInput.X))
 	{
-		FVector DeltaLocation = FVector::ForwardVector * MoveInput.X * MoveSpeed;
-		AddActorLocalOffset(DeltaLocation);
+		FVector NewLocation = FVector::ForwardVector * MoveInput.X * CurrentMoveSpeed;
+		AddActorLocalOffset(NewLocation);
 	}
 	if (!FMath::IsNearlyZero(MoveInput.Y))
 	{
-		FVector DeltaLocation = FVector::RightVector * MoveInput.Y * MoveSpeed;
-		AddActorLocalOffset(DeltaLocation);
+		FVector NewLocation = FVector::RightVector * MoveInput.Y * CurrentMoveSpeed;
+		AddActorLocalOffset(NewLocation);
 	}
 	if (!FMath::IsNearlyZero(MoveInput.Z))
 	{
-		FVector DeltaLocation = FVector::UpVector * MoveInput.Z * MoveSpeed;
-		AddActorLocalOffset(DeltaLocation);
+		if (MoveInput.Z < 0.0f)
+		{
+			if (!bIsGrounded)
+			{
+				FVector NewLocation = FVector::UpVector * MoveInput.Z * CurrentMoveSpeed;
+				AddActorLocalOffset(NewLocation);
+			}
+		}
+		else
+		{
+			FVector NewLocation = FVector::UpVector * MoveInput.Z * CurrentMoveSpeed;
+			AddActorLocalOffset(NewLocation);
+		}
 	}
+}
+
+void AHWDronePawn::MoveComplete(const FInputActionValue& Value)
+{
+	bMoving = false;
 }
 
 void AHWDronePawn::Look(const FInputActionValue& Value)
@@ -70,4 +105,55 @@ void AHWDronePawn::Look(const FInputActionValue& Value)
 	}
 
 	SetActorRotation(FRotator(NewPitch, NewYaw, NewRoll));
+}
+
+void AHWDronePawn::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (bSimulateGravity)
+	{
+		bool bIsGrounded = CheckGround();
+		if (!bIsGrounded && !bMoving)
+		{
+			Velocity.Z += GravityScale * DeltaTime;
+
+			FVector NewLocation = GetActorLocation() + (Velocity * DeltaTime);
+			SetActorLocation(NewLocation);
+		}
+		else
+		{
+			Velocity = FVector::ZeroVector;
+		}
+	}
+}
+
+bool AHWDronePawn::CheckGround()
+{
+	FVector StartLocation = CapsuleComponent->GetComponentLocation();
+	FVector EndLocation = StartLocation - FVector(0.0f, 0.0f, TraceDistance);
+
+	FHitResult HitResult;
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+
+	bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation,
+	                                                 ECC_WorldStatic, QueryParams);
+
+	if (bShowDebugTrace)
+	{
+		FColor LineColor = bHit ? FColor::Green : FColor::Red;
+		DrawDebugLine(
+			GetWorld(),
+			StartLocation,
+			EndLocation,
+			LineColor,
+			false,
+			-1.0f,
+			0,
+			1.0f
+		);
+	}
+
+	return bHit;
 }
